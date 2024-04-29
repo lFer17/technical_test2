@@ -33,16 +33,33 @@ func Play() {
 	var previousMission string
 	var previousScenario string
 
-	for currentlevel <= 2 {
-		var previousMissionHistory, previousScenarioHistory, currentEnemyName = AssignMissions.GeneratedMission(previousMission, previousScenario)
-		var enemyAttack = int(userCharacterSelected.defense - (userCharacterSelected.defense * 90 / 100))
-		var enemyDefense = int(userCharacterSelected.attack - (userCharacterSelected.attack * 50 / 100))
-		currentEnemy = NewCharacter(currentEnemyName, enemyAttack, enemyDefense, currentlevel)
-		fmt.Println(currentEnemy, "\n")
-		currentlevel++
-		previousMission = previousMissionHistory
-		previousScenario = previousScenarioHistory
+	// loop de jugabilidad inifinita
+	// Generating misions and history
+	var _, _, currentEnemyName = AssignMissions.GeneratedMission(previousMission, previousScenario)
+
+	// Creating enemy capacity
+	var enemyAttack = int(userCharacterSelected.defense - (userCharacterSelected.defense * 90 / 100))
+	var enemyDefense = int(userCharacterSelected.attack + (userCharacterSelected.attack * 20 / 100))
+	currentEnemy = NewCharacter(currentEnemyName, enemyAttack, enemyDefense, currentlevel)
+
+	// increasing  level
+	currentlevel++
+
+	fmt.Printf(" ha aparecido %s \n", currentEnemy.name)
+
+	fmt.Println("entramos en combate? ingresa : si/no")
+	var userResponse string
+	fmt.Scan(&userResponse)
+
+	if userResponse == "si" {
+		CombatInit(&userCharacterSelected, &currentEnemy)
+	} else {
+		EscapeOptions()
 	}
+
+	// assigning history and mission to mantain narrative consistency
+	// previousMission = previousMissionHistory
+	// previousScenario = previousScenarioHistory
 
 }
 
@@ -89,4 +106,47 @@ func SettingUserCharacter() {
 		fmt.Println("Vamos allá ", userCharacterSelected.name)
 		fmt.Println("-----------------------------------------------------")
 	}
+}
+
+// start combat between enemy and user
+func CombatInit(currentCharacterParam *Character, currentEnemyParam *Character) {
+	healthReference := currentCharacterParam.defense
+	currentEnemyParam.defense = currentEnemyParam.defense - currentCharacterParam.attack
+	currentCharacterParam.defense = currentCharacterParam.defense - currentEnemyParam.attack
+
+	if currentEnemyParam.defense <= 0 {
+		fmt.Println("Felicitaciones eliminaste al enemigo\n")
+		fmt.Printf(" Se ha Restaurado tu salud %d \n", healthReference-1)
+		// restoring user health
+		currentCharacterParam.defense = healthReference - 1
+	} else if currentEnemyParam.defense > 0 && currentCharacterParam.defense > 0 {
+		fmt.Printf("haz dañado a tu enemigo con: %d \n", currentCharacterParam.attack)
+		fmt.Printf(" defensa restante:%d \n", currentEnemyParam.defense)
+		// dicreasing player defense
+		fmt.Printf(" Enemigo te resta:%d \n", currentCharacterParam.defense)
+		//  reiniciando combate
+		fmt.Println(" volvemos atacar? : si / no")
+		var userResponse string
+		fmt.Scan(&userResponse)
+		if userResponse == "si" && currentCharacterParam.defense > 0 {
+			CombatInit(currentCharacterParam, currentEnemyParam)
+		} else {
+			EscapeOptions()
+		}
+	} else {
+		fmt.Println("Aqui murio un valiente, Quedaste bien muertito!\n")
+		fmt.Println(" Game over\n")
+		GameOver()
+	}
+
+}
+
+func EscapeOptions() {
+	// generate option to run
+	fmt.Println("bienvenid@, bitch pudiste escapar de: ", currentEnemy.name)
+
+}
+
+func GameOver() bool {
+	return true
 }
