@@ -3,6 +3,11 @@ package main
 import (
 	"fmt"
 	AssignMissions "lfer17/user/test/pkg/missions"
+	Utils "lfer17/user/test/pkg/utils"
+	"os"
+	"strconv"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 type Character struct {
@@ -17,6 +22,7 @@ var (
 	userCharacterSelected Character
 	currentEnemy          Character
 	currentlevel          int
+	numberOfEnemies       int
 )
 
 func NewCharacter(name string, attack int, defense int, level int) Character {
@@ -37,29 +43,43 @@ func Play() {
 	// Generating misions and history
 	var _, _, currentEnemyName = AssignMissions.GeneratedMission(previousMission, previousScenario)
 
-	// Creating enemy capacity
-	var enemyAttack = int(userCharacterSelected.defense - (userCharacterSelected.defense * 90 / 100))
-	var enemyDefense = int(userCharacterSelected.attack + (userCharacterSelected.attack * 20 / 100))
-	currentEnemy = NewCharacter(currentEnemyName, enemyAttack, enemyDefense, currentlevel)
-
+	// Creating enemy
+	CreateNewEnemy(currentEnemyName)
 	// increasing  level
 	currentlevel++
+	// assigning number of enemies in current level
+	numberOfEnemies = currentlevel * 2
 
-	fmt.Printf(" ha aparecido %s \n", currentEnemy.name)
+	// Game infinity loop
 
-	fmt.Println("entramos en combate? ingresa : si/no")
-	var userResponse string
-	fmt.Scan(&userResponse)
+	for {
+		if numberOfEnemies > 0 {
+			fmt.Printf("Ha aparecido un nuevo %s", currentEnemyName)
+			CreateNewEnemy(currentEnemyName)
+			Utils.TimerDelay()
+			Utils.ClearConsole()
+		} else {
+			Utils.ClearConsole()
+			currentlevel++
+			numberOfEnemies = currentlevel * 2
+			fmt.Printf(" bienvenido al nivel %d \n", currentlevel)
+			fmt.Printf(" Tu nueva mision será...")
+			var _, _, currentEnemyName = AssignMissions.GeneratedMission(previousMission, previousScenario)
+			CreateNewEnemy(currentEnemyName)
+		}
 
-	if userResponse == "si" {
-		CombatInit(&userCharacterSelected, &currentEnemy)
-	} else {
-		EscapeOptions()
+		fmt.Printf(" ha aparecido %s \n", currentEnemy.name)
+
+		fmt.Println("entramos en combate? ingresa : si/no")
+		var userResponse string
+		fmt.Scan(&userResponse)
+
+		if userResponse == "si" {
+			CombatInit(&userCharacterSelected, &currentEnemy)
+		} else {
+			EscapeOptions()
+		}
 	}
-
-	// assigning history and mission to mantain narrative consistency
-	// previousMission = previousMissionHistory
-	// previousScenario = previousScenarioHistory
 
 }
 
@@ -72,14 +92,14 @@ func SettingUserCharacter() {
 		"4": NewCharacter("Gollum", 18, 8, 1),
 	}
 	fmt.Println(" Ingresa un numero para elegir tu personaje \n")
-
-	for name, character := range characterOptions {
-		fmt.Println(name)
-		fmt.Printf("Nombre: %s\n", character.name)
-		fmt.Printf("Ataque: %d\n", character.attack)
-		fmt.Printf("Defensa: %d\n\n", character.defense)
+	table := tablewriter.NewWriter(os.Stdout)
+	for key, character := range characterOptions {
+		table.SetHeader([]string{"Opcion", "Nombre", "Ataque", "Defensa"})
+		attackString := strconv.Itoa(character.attack)
+		defenseString := strconv.Itoa(character.defense)
+		table.Append([]string{key, character.name, attackString, defenseString})
 	}
-
+	table.Render()
 	var userCharacterSelection string
 
 	fmt.Scanln(&userCharacterSelection)
@@ -106,6 +126,15 @@ func SettingUserCharacter() {
 		fmt.Println("Vamos allá ", userCharacterSelected.name)
 		fmt.Println("-----------------------------------------------------")
 	}
+	Utils.TimerDelay()
+	Utils.ClearConsole()
+}
+
+func CreateNewEnemy(enemyname string) {
+	var enemyAttack = int(userCharacterSelected.defense - (userCharacterSelected.defense * 90 / 100))
+	var enemyDefense = int(userCharacterSelected.attack + (userCharacterSelected.attack * 20 / 100))
+	currentEnemy = NewCharacter(enemyname, enemyAttack, enemyDefense, currentlevel)
+
 }
 
 // start combat between enemy and user
@@ -117,6 +146,7 @@ func CombatInit(currentCharacterParam *Character, currentEnemyParam *Character) 
 	if currentEnemyParam.defense <= 0 {
 		fmt.Println("Felicitaciones eliminaste al enemigo\n")
 		fmt.Printf(" Se ha Restaurado tu salud %d \n", healthReference-1)
+		numberOfEnemies--
 		// restoring user health
 		currentCharacterParam.defense = healthReference - 1
 	} else if currentEnemyParam.defense > 0 && currentCharacterParam.defense > 0 {
@@ -143,10 +173,14 @@ func CombatInit(currentCharacterParam *Character, currentEnemyParam *Character) 
 
 func EscapeOptions() {
 	// generate option to run
-	fmt.Println("bienvenid@, bitch pudiste escapar de: ", currentEnemy.name)
-
+	fmt.Println("ingresa el numero 1 para finalizar partida")
+	var userResponse string
+	fmt.Scan(&userResponse)
+	if userResponse == "1" {
+		GameOver()
+	}
 }
 
-func GameOver() bool {
-	return true
+func GameOver() {
+	os.Exit(0)
 }
