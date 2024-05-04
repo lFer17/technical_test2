@@ -39,7 +39,6 @@ func Play() {
 	var previousMission string
 	var previousScenario string
 
-	// loop de jugabilidad inifinita
 	// Generating misions and history
 	var _, _, currentEnemyName = AssignMissions.GeneratedMission(previousMission, previousScenario)
 
@@ -83,7 +82,7 @@ func Play() {
 
 }
 
-// Despliega opciones para que el usuario escoja su personaje ingresando un entero
+// display options to choose a character
 func SettingUserCharacter() {
 	characterOptions := map[string]Character{
 		"1": NewCharacter("Legolas", 20, 10, 1),
