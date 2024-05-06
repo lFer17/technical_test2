@@ -2,6 +2,7 @@ package main
 
 import "fmt"
 
+// Estructura de un libro
 type book struct {
 	name      string
 	author    string
@@ -9,52 +10,80 @@ type book struct {
 	available bool
 }
 
+// Librería representa la colección de libros y proporciona operaciones relacionadas
+type Library struct {
+	storage []book
+}
+
+// Función principal
 func main() {
-	fmt.Println("Gestiona tu libreria")
-	var storageLocal []book
-	CreateBook(&storageLocal, "nuevo", "Elver Gatiesa", "comedia")
-	fmt.Printf("Almacenado actualmente: %s \n", storageLocal)
-	fmt.Println(FindBookTittleOrAuthor(&storageLocal, "nuevonuevo"))
-	UpdateBookStatus(&storageLocal, "nuevo")
-	fmt.Println(FindBookTittleOrAuthor(&storageLocal, "nuevo"))
-}
+	fmt.Println("Gestiona tu librería")
 
-func CreateBook(storage *[]book, name string, author string, genre string) {
-	var newBook = book{name: name, author: author, genre: genre, available: true}
-	*storage = append(*storage, newBook)
-}
+	// Crear una nueva librería
+	lib := NewLibrary()
 
-func FindBookTittleOrAuthor(storage *[]book, bookTitleOrAuthor string) book {
+	// Agregar un nuevo libro
+	lib.CreateBook("nuevo", "Elver Gatiesa", "comedia")
 
-	var BookFound book
+	// Imprimir la lista de libros
+	fmt.Println("Libros almacenados:")
+	lib.PrintBooks()
 
-	for _, bookObject := range *storage {
-
-		if bookObject.name == bookTitleOrAuthor || bookObject.author == bookTitleOrAuthor {
-			BookFound = bookObject
-			return BookFound
-		}
-	}
-	return BookFound
-}
-
-func UpdateBookStatus(storage *[]book, bookTitle string) {
-	for objectPosition, bookObject := range *storage {
-		if bookObject.name == bookTitle && bookObject.available == true {
-			(*storage)[objectPosition].available = false
-		} else {
-			(*storage)[objectPosition].available = true
-		}
-	}
-}
-
-func DeleteBook(storage *[]book, bookTitle string) {
-
-	for objectPosition, bookobject := range *storage {
-		if bookobject.name == bookTitle {
-			(*storage)[objectPosition] = (*storage)[len(*storage)-1]
-			*storage = (*storage)[:len(*storage)-1]
-		}
+	// Encontrar un libro por título o autor
+	bookFound := lib.FindBookTitleOrAuthor("nuevonuevo")
+	if bookFound.name != "" {
+		fmt.Println("Libro encontrado:", bookFound)
+	} else {
+		fmt.Println("Libro no encontrado.")
 	}
 
+	// Actualizar el estado de un libro
+	lib.UpdateBookStatus("nuevo")
+	fmt.Println("Estado del libro 'nuevo' actualizado.")
+
+	// Imprimir la lista de libros actualizada
+	fmt.Println("Libros almacenados actualizados:")
+	lib.PrintBooks()
+}
+
+// Crea una nueva librería
+func NewLibrary() *Library {
+	return &Library{}
+}
+
+// Agrega un nuevo libro a la librería
+func (lib *Library) CreateBook(name, author, genre string) {
+	newBook := book{name: name, author: author, genre: genre, available: true}
+	lib.storage = append(lib.storage, newBook)
+}
+
+// Encuentra un libro por título o autor
+func (lib *Library) FindBookTitleOrAuthor(titleOrAuthor string) book {
+	var bookFound book
+
+	for _, bookObject := range lib.storage {
+		if bookObject.name == titleOrAuthor || bookObject.author == titleOrAuthor {
+			bookFound = bookObject
+			break
+		}
+	}
+
+	return bookFound
+}
+
+// Actualiza el estado de un libro
+func (lib *Library) UpdateBookStatus(title string) {
+	for i := range lib.storage {
+		if lib.storage[i].name == title {
+			lib.storage[i].available = !lib.storage[i].available
+			break
+		}
+	}
+}
+
+// Imprime todos los libros en la librería
+func (lib *Library) PrintBooks() {
+	for _, book := range lib.storage {
+		fmt.Println(book)
+	}
 }
